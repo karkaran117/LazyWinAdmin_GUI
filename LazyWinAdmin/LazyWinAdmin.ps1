@@ -1,4 +1,4 @@
-﻿#========================================================================
+#========================================================================
 # Name		: LazyWinAdmin-v0.4.ps1
 # Author 	: Francois-Xavier Cat
 # Website	: http://lazyWinAdmin.com
@@ -6,6 +6,7 @@
 #
 # History Version
 # 	0.4		20120614 Public Version
+#   0.4.1   20180405 
 #========================================================================
 
 #----------------------------------------------
@@ -166,6 +167,19 @@ function Main {
 	}
 	#endregion Get-Uptime
 	
+    #region Get-DomainUser
+    function Get-DomainUser {
+        param($UserName)
+        $Search = [adsisearcher]"(&(objectCategory=person)(objectClass=User)(samaccountname=$UserName))"
+            foreach ($user in $($Search.FindAll())){
+            New-Object -TypeName PSObject -Property @{
+                "DisplayName" = $user.properties.displayname
+                "Email" = $user.properties.mail
+            }
+        }
+    }
+    #endregion Get-DomainUser
+        
 	#region Invoke-GPUpdate
 	function Invoke-GPUpdate(){
 		param($ComputerName = ".")
@@ -1044,23 +1058,59 @@ function Main {
 	        {
 	            try
 	            {
-	                $RegKey = Get-RegistryKey -Path "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall" -ComputerName $ComputerName
-	                foreach($key in $RegKey.GetSubKeyNames())   
+	                #$RegKey = Get-RegistryKey -Path "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall" -ComputerName $ComputerName
+	                #foreach($key in $RegKey.GetSubKeyNames())   
+	                #{   
+	                #    $SubKey = $RegKey.OpenSubKey($key)
+	                #    if($SubKey.GetValue("DisplayName"))
+	                #    {
+	                #        $myobj = @{
+	                #            Name    = $SubKey.GetValue("DisplayName")   
+	                #            Version = $SubKey.GetValue("DisplayVersion")   
+	                #            Vendor  = $SubKey.GetValue("Publisher")
+	                #        }
+	                #        $obj = New-Object PSObject -Property $myobj
+	                #        $obj.PSTypeNames.Clear()
+	                #        $obj.PSTypeNames.Add('BSonPosh.SoftwareInfo')
+	                #        $obj
+	                #    }
+	                #}  
+	                $RegKey1 = Get-RegistryKey -Path "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall" -ComputerName $ComputerName
+	                foreach($key1 in $RegKey1.GetSubKeyNames())   
 	                {   
-	                    $SubKey = $RegKey.OpenSubKey($key)
-	                    if($SubKey.GetValue("DisplayName"))
+	                    $SubKey1 = $RegKey1.OpenSubKey($key1)
+	                    if($SubKey1.GetValue("DisplayName"))
 	                    {
-	                        $myobj = @{
-	                            Name    = $SubKey.GetValue("DisplayName")   
-	                            Version = $SubKey.GetValue("DisplayVersion")   
-	                            Vendor  = $SubKey.GetValue("Publisher")
+	                        $myobj1 = @{
+	                            Name    = $SubKey1.GetValue("DisplayName")   
+	                            Version = $SubKey1.GetValue("DisplayVersion")   
+	                            Vendor  = $SubKey1.GetValue("Publisher")
+                                UninstallString = $SubKey1.GetValue("UninstallString")
 	                        }
-	                        $obj = New-Object PSObject -Property $myobj
-	                        $obj.PSTypeNames.Clear()
-	                        $obj.PSTypeNames.Add('BSonPosh.SoftwareInfo')
-	                        $obj
+	                        $obj1 = New-Object PSObject -Property $myobj1
+	                        $obj1.PSTypeNames.Clear()
+	                        $obj1.PSTypeNames.Add('BSonPosh.SoftwareInfo')
+	                        $obj1
 	                    }
-	                }   
+	                }  
+	                $RegKey2 = Get-RegistryKey -Path "HKLM\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall" -ComputerName $ComputerName
+	                foreach($key2 in $RegKey2.GetSubKeyNames())   
+	                {   
+	                    $SubKey2 = $RegKey2.OpenSubKey($key2)
+	                    if($SubKey2.GetValue("DisplayName"))
+	                    {
+	                        $myobj2 = @{
+	                            Name    = $SubKey2.GetValue("DisplayName")   
+	                            Version = $SubKey2.GetValue("DisplayVersion")   
+	                            Vendor  = $SubKey2.GetValue("Publisher")
+                                UninstallString = $SubKey2.GetValue("UninstallString")
+	                        }
+	                        $obj2 = New-Object PSObject -Property $myobj2
+	                        $obj2.PSTypeNames.Clear()
+	                        $obj2.PSTypeNames.Add('BSonPosh.SoftwareInfo')
+	                        $obj2
+	                    }
+	                }  
 	            }
 	            catch
 	            {
@@ -5721,6 +5771,7 @@ function Call-MainForm_pff
 	$button_networkPathPing = New-Object 'System.Windows.Forms.Button'
 	$groupbox_ComputerName = New-Object 'System.Windows.Forms.GroupBox'
 	$label_UptimeStatus = New-Object 'System.Windows.Forms.Label'
+    $label_CurrentUser = New-Object 'System.Windows.Forms.Label'
 	$textbox_computername = New-Object 'System.Windows.Forms.TextBox'
 	$label_OSStatus = New-Object 'System.Windows.Forms.Label'
 	$button_Check = New-Object 'System.Windows.Forms.Button'
@@ -5728,6 +5779,7 @@ function Call-MainForm_pff
 	$label_Ping = New-Object 'System.Windows.Forms.Label'
 	$label_PSRemotingStatus = New-Object 'System.Windows.Forms.Label'
 	$label_Uptime = New-Object 'System.Windows.Forms.Label'
+	$label_User = New-Object 'System.Windows.Forms.Label'
 	$label_RDPStatus = New-Object 'System.Windows.Forms.Label'
 	$label_OS = New-Object 'System.Windows.Forms.Label'
 	$label_PermissionStatus = New-Object 'System.Windows.Forms.Label'
@@ -5801,6 +5853,7 @@ function Call-MainForm_pff
 	$ToolStripMenuItem_GeneratePassword = New-Object 'System.Windows.Forms.ToolStripMenuItem'
 	$ToolStripMenuItem_scripts = New-Object 'System.Windows.Forms.ToolStripMenuItem'
 	$ToolStripMenuItem_WMIExplorer = New-Object 'System.Windows.Forms.ToolStripMenuItem'
+    $ToolStripMenuItem_ADUSERUnlocker = New-Object 'System.Windows.Forms.ToolStripMenuItem'
 	$imagelistAnimation = New-Object 'System.Windows.Forms.ImageList'
 	$timerCheckJob = New-Object 'System.Windows.Forms.Timer'
 	$InitialFormWindowState = New-Object 'System.Windows.Forms.FormWindowState'
@@ -5815,8 +5868,8 @@ function Call-MainForm_pff
 	
 	# LazyAdminKit information
 	$ApplicationName		= "LazyWinAdmin"
-	$ApplicationVersion		= "0.4"
-	$ApplicationLastUpdate	= "2012/06/14"
+	$ApplicationVersion		= "0.4.1"
+	$ApplicationLastUpdate	= "2018/04/04"
 	
 	# Author Information
 	$AuthorName			= "Francois-Xavier Cat"
@@ -5824,10 +5877,10 @@ function Call-MainForm_pff
 	$AuthorBlogName 	= "LazyWinAdmin.com"
 	$AuthorBlogURL 		= "http://www.lazywinadmin.com"
 	$AuthorTwitter 		= "@LazyWinAdm"
-	$AuthorTwitterURL	= "http://twitter.com/LazyWinAdm"
+    $AuthorTwitterURL	= "http://twitter.com/LazyWinAdm"
 	
 	# Text to show in the Status Bar when the form load
-	$StatusBarStartUp	= "$AuthorName - $AuthorEmail"
+	# $StatusBarStartUp	= "$AuthorName - $AuthorEmail"
 	
 	# Title of the MainForm
 	$domain				= $env:userdomain.ToUpper()
@@ -5948,6 +6001,13 @@ function Call-MainForm_pff
 		else {	$ToolStripMenuItem_WMIExplorer.ForeColor = 'Red';$ToolStripMenuItem_WMIExplorer.enabled = $false
 				Add-Logs -text "External Script check - WMIExplorer.ps1 not found - Button Disabled"}
 		
+		# ADUserUnlocker.ps1 - https://gallery.technet.microsoft.com/WinForm-Active-Directory-a3771370
+		if(Test-Path "$ScriptsFolder\ADUSERUnlocker.ps1" -ErrorAction 'SilentlyContinue'){
+			$ToolStripMenuItem_ADUSERUnlocker.ForeColor = 'green'
+			Add-Logs -text "External Script check - ADUSERUnlocker.ps1 found"}
+		else {	$ToolStripMenuItem_ADUSERUnlocker.ForeColor = 'Red';$ToolStripMenuItem_ADUSERUnlocker.enabled = $false
+				Add-Logs -text "External Script check - ADUSERUnlocker.ps1 not found - Button Disabled"}
+
 		# SYDI-Server.vbs - http://sydiproject.com/
 		if(Test-Path "$ScriptsFolder\sydi-server.vbs" -ErrorAction 'SilentlyContinue'){
 			$button_SYDIGo.ForeColor = 'green'
@@ -6574,6 +6634,7 @@ function Call-MainForm_pff
 		$label_RDPStatus.Text = ""
 		$label_PSRemotingStatus.Text = ""
 		$label_UptimeStatus.Text = ""
+        $label_CurrentUser.Text = ""
 		$now = Get-DateSortable
 		if ($textbox_computername.Text -eq "") {
 			$textbox_computername.BackColor =  [System.Drawing.Color]::FromArgb(255, 128, 128);
@@ -6607,8 +6668,8 @@ function Call-MainForm_pff
 	$button_HTTP_Click={
 		Get-ComputerTxtBox
 		$HPHomePage_command="iexplore.exe"
-		$HPHomePage_arguments = "http://$ComputerName"+":80"
-		Add-Logs -text "$ComputerName - Internet Explorer - Default Website (default port 80)"
+		$HPHomePage_arguments = "http://$ComputerName"+":8081"
+		Add-Logs -text "$ComputerName - Internet Explorer - McAfee Logs(default port 8081)"
 		Start-Process $HPHomePage_command $HPHomePage_arguments
 	}
 	
@@ -7013,6 +7074,11 @@ function Call-MainForm_pff
 				[TimeSpan]$uptime = New-TimeSpan $LBTime $(get-date)
 				$label_UptimeStatus.Text = "$($uptime.days) Days $($uptime.hours) Hours $($uptime.minutes) Minutes $($uptime.seconds) Seconds"
 				
+                # Get the current user
+                $user = Get-WmiObject -Class win32_computersystem -ComputerName $computername | ForEach-Object {$_.username}
+                $currentuser = Get-DomainUser -UserName $user.Split('\')[-1] | Foreach-object {$_.DisplayName, $_.Email} | Write-output
+                Add-RichTextBox "$user $currentuser" 
+                $label_CurrentUser.Text = "$user $currentuser"
 				
 			}#end if (Test-Path "\\$ComputerName\c$")
 			else {$label_PermissionStatus.Text = "FAIL";$label_PermissionStatus.ForeColor = "red"}
@@ -7136,7 +7202,7 @@ function Call-MainForm_pff
 	
 	$button_Applications_Click={
 		Get-ComputerTxtBox
-		$result = Get-InstalledSoftware -ComputerName $ComputerName |Format-Table * -AutoSize| Out-String -Width $richtextbox_output.Width
+		$result = Get-InstalledSoftware -ComputerName $ComputerName |Format-Table Name,Version,Vendor,UninstallString -AutoSize| Out-String -Width $richtextbox_output.Width
 		Add-Logs -text "$ComputerName - Installed Softwares List"
 		Add-RichTextBox $result
 	}
@@ -7151,6 +7217,11 @@ function Call-MainForm_pff
 	$ToolStripMenuItem_WMIExplorer_Click={
 		Add-logs -text "Scripts - WMIExplorer.ps1 By www.ThePowerShellGuy.com (Marc van Orsouw)"
 		& "$ScriptsFolder\WMIExplorer.ps1"
+	}
+
+	$ToolStripMenuItem_ADUSERUnlocker_Click={
+		Add-logs -text "Scripts - ADUSERUnlocker.ps1 By LazyWinAdmin (François-Xavier Cat)"
+		& "$ScriptsFolder\ADUSERUnlocker.ps1"
 	}
 	
 	$button_DriverQuery_Click={
@@ -7648,6 +7719,7 @@ function Call-MainForm_pff
 			$ToolStripMenuItem_rwinsta.remove_Click($button_Rwinsta_Click)
 			$ToolStripMenuItem_GeneratePassword.remove_Click($button_PasswordGen_Click)
 			$ToolStripMenuItem_WMIExplorer.remove_Click($ToolStripMenuItem_WMIExplorer_Click)
+            $ToolStripMenuItem_ADUSERUnlocker.remove_Click($ToolStripMenuItem_ADUSERUnlocker_Click)
 			$timerCheckJob.remove_Tick($timerCheckJob_Tick2)
 			$form_MainForm.remove_Load($Form_StateCorrection_Load)
 			$form_MainForm.remove_Closing($Form_StoreValues_Closing)
@@ -10096,6 +10168,7 @@ yOl5co93qgAAAABJRU5ErkJggg==')
 	# groupbox_ComputerName
 	#
 	$groupbox_ComputerName.Controls.Add($label_UptimeStatus)
+    $groupbox_ComputerName.Controls.Add($label_CurrentUser)
 	$groupbox_ComputerName.Controls.Add($textbox_computername)
 	$groupbox_ComputerName.Controls.Add($label_OSStatus)
 	$groupbox_ComputerName.Controls.Add($button_Check)
@@ -10103,6 +10176,7 @@ yOl5co93qgAAAABJRU5ErkJggg==')
 	$groupbox_ComputerName.Controls.Add($label_Ping)
 	$groupbox_ComputerName.Controls.Add($label_PSRemotingStatus)
 	$groupbox_ComputerName.Controls.Add($label_Uptime)
+	$groupbox_ComputerName.Controls.Add($label_User)
 	$groupbox_ComputerName.Controls.Add($label_RDPStatus)
 	$groupbox_ComputerName.Controls.Add($label_OS)
 	$groupbox_ComputerName.Controls.Add($label_PermissionStatus)
@@ -10121,9 +10195,16 @@ yOl5co93qgAAAABJRU5ErkJggg==')
 	#
 	$label_UptimeStatus.Location = '614, 33'
 	$label_UptimeStatus.Name = "label_UptimeStatus"
-	$label_UptimeStatus.Size = '539, 19'
+	$label_UptimeStatus.Size = '309, 19'
 	$label_UptimeStatus.TabIndex = 61
 	#
+    # label_CurrentUser
+    #
+    $label_CurrentUser.Location = '972,17'
+    $label_CurrentUser.Name = "label_CurrentUser"
+    $label_CurrentUser.Size = '239,39'
+    $label_CurrentUser.TabIndex = 65
+    #
 	# textbox_computername
 	#
 	$textbox_computername.AutoCompleteMode = 'SuggestAppend'
@@ -10147,7 +10228,7 @@ yOl5co93qgAAAABJRU5ErkJggg==')
 	#
 	$label_OSStatus.Location = '614, 16'
 	$label_OSStatus.Name = "label_OSStatus"
-	$label_OSStatus.Size = '539, 16'
+	$label_OSStatus.Size = '309, 16'
 	$label_OSStatus.TabIndex = 60
 	#
 	# button_Check
@@ -10210,6 +10291,15 @@ Kkc7uYKdwHpnCQTlvAiBdw7Sr9Hc1cSX0iYqJOkSo9NvRv9zK/oXrLB4TchoS4dQwQvRqhgc7cL2
 	$label_Uptime.Size = '50, 20'
 	$label_Uptime.TabIndex = 59
 	$label_Uptime.Text = "Uptime:"
+    #
+    # label_User
+    #
+	$label_User.Font = "Trebuchet MS, 8.25pt, style=Underline"
+	$label_User.Location = '929, 16'
+	$label_User.Name = "label_User"
+	$label_User.Size = '33, 16'
+	$label_User.TabIndex = 64
+	$label_User.Text = "User:"
 	#
 	# label_RDPStatus
 	#
@@ -13112,6 +13202,7 @@ x3fCG1PjQj4lXz+jjQ07rDjlv8v7L4YVwdGFwpZPAAAAAElFTkSuQmCC')
 	# ToolStripMenuItem_scripts
 	#
 	[void]$ToolStripMenuItem_scripts.DropDownItems.Add($ToolStripMenuItem_WMIExplorer)
+    [void]$ToolStripMenuItem_scripts.DropDownItems.Add($ToolStripMenuItem_ADUSERUnlocker)
 	#region Binary Data
 	$ToolStripMenuItem_scripts.Image = [System.Convert]::FromBase64String('iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACx
 jwv8YQUAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAn9JREFU
@@ -13138,6 +13229,13 @@ RHNivXBqBgD70EG6KrB0jQAAAABJRU5ErkJggg==')
 	$ToolStripMenuItem_WMIExplorer.Size = '152, 22'
 	$ToolStripMenuItem_WMIExplorer.Text = "WMI Explorer"
 	$ToolStripMenuItem_WMIExplorer.add_Click($ToolStripMenuItem_WMIExplorer_Click)
+    #
+	# ToolStripMenuItem_ADUSERUnlocker
+	#
+	$ToolStripMenuItem_ADUSERUnlocker.Name = "ToolStripMenuItem_ADUSERUnlocker"
+	$ToolStripMenuItem_ADUSERUnlocker.Size = '152, 22'
+	$ToolStripMenuItem_ADUSERUnlocker.Text = "ADUSERUnlocker"
+	$ToolStripMenuItem_ADUSERUnlocker.add_Click($ToolStripMenuItem_ADUSERUnlocker_Click)
 	#
 	# imagelistAnimation
 	#
@@ -13199,6 +13297,7 @@ AT8E/wH8AT8B/AE/Cw=='))
 	$Formatter_binaryFomatter = $null
 	$System_IO_MemoryStream = $null
 	$imagelistAnimation.TransparentColor = 'Transparent'
+
 	#
 	# timerCheckJob
 	#
