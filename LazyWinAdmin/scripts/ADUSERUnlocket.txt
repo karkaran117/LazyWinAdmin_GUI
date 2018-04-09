@@ -1,0 +1,46 @@
+https://gallery.technet.microsoft.com/WinForm-Active-Directory-a3771370#content
+
+$buttonDisabledCheck_Click = {
+
+# Get the Current text in $textbox1
+$name = $textbox1.Text
+
+# Search for this account in the current domain
+$Searcher = [ADSISearcher]"(sAMAccountName=$Name)"
+$Results = $Searcher.FindOne()
+
+# Get the current date and time
+$DateFormat = Get-Date -Format "yyyy/MM/dd-HH:mm:ss"
+
+if ($Results -ne $null)
+{
+# If an Account is found do the following
+
+# Here we check the property "AccountDisabled", if it is greater that 0
+# this mean the account is Disabled
+if ($Results.GetDirectoryEntry().InvokeGet('AccountDisabled'))
+{
+# Show the information in the ListBox
+Load-ListBox `
+-ListBox $listBox1 `
+-Items "$DateFormat - $name - Account Disabled" `
+-Append
+}
+else
+{
+# Show the information in the ListBox
+Load-ListBox `
+-ListBox $listBox1 `
+-Items "$DateFormat - $name - Account NOT Disabled!" `
+-Append
+}
+}
+else
+{
+# Show the information in the ListBox
+Load-ListBox `
+-ListBox $listbox1 `
+-Items "$DateFormat - $name - Account Not Found!" `
+-Append
+}
+}#$buttonDisabledCheck_Click
