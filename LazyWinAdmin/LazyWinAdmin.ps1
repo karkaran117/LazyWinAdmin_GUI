@@ -6668,8 +6668,8 @@ function Call-MainForm_pff
 	$button_HTTP_Click={
 		Get-ComputerTxtBox
 		$HPHomePage_command="iexplore.exe"
-		$HPHomePage_arguments = "http://$ComputerName"+":8081"
-		Add-Logs -text "$ComputerName - Internet Explorer - McAfee Logs(default port 8081)"
+		$HPHomePage_arguments = "http://$ComputerName"+":80"
+		Add-Logs -text "$ComputerName - Internet Explorer - Default Website(default port 80)"
 		Start-Process $HPHomePage_command $HPHomePage_arguments
 	}
 	
